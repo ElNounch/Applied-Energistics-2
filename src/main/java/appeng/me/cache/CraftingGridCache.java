@@ -282,18 +282,31 @@ public class CraftingGridCache implements ICraftingGrid, ICraftingProviderHelper
 		{
 			for( IAEItemStack out : details.getOutputs() )
 			{
-				out = out.copy();
-				out.reset();
-				out.setCraftable( true );
-
-				Set<ICraftingPatternDetails> methods = tmpCraft.get( out );
-
-				if( methods == null )
+				long consumed = 0;
+				for( IAEItemStack in : details.getCondensedInputs() )
 				{
-					tmpCraft.put( out, methods = new TreeSet<>( COMPARATOR ) );
+					if( in.isSameType( out ) )
+					{
+						consumed = consumed + in.getStackSize();
+					}
 				}
 
-				methods.add( details );
+				// Does recipe output more of the item than consumed ?
+				if( consumed < out.getStackSize() )
+				{
+					out = out.copy();
+					out.reset();
+					out.setCraftable( true );
+
+					Set<ICraftingPatternDetails> methods = tmpCraft.get( out );
+
+					if( methods == null )
+					{
+						tmpCraft.put( out, methods = new TreeSet<>( COMPARATOR ) );
+					}
+
+					methods.add( details );
+				}
 			}
 		}
 
